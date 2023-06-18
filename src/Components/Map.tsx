@@ -7,9 +7,9 @@ import TextField from '@mui/material/TextField';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
-// import Input from '@mui/joy/Input';
 import DialogTitle from '@mui/material/DialogTitle';
 import { Alert, AlertTitle, Box, Button, Card, DialogContentText } from "@mui/material";
+import CoolerCard from "./FountainCard";
 
 // map component
 function CoolerMap(){
@@ -20,33 +20,20 @@ function CoolerMap(){
     const [dialogOpen, setOpen] = useState(false);
     
     // Add Fountain
-    const [newFountainName, setName] = useState('Your Location');
-    const [newFountainDescription, setDesc] = useState('Me Gusta');
-    const [newFountainRating, setRating] = useState(0);
+    const [newFountainName, setName] = useState('המיקום שלך');
+    const [newFountainDescription, setDesc] = useState('אני נהניתי');
+    const [newFountainRating, setRating] = useState(10);
     const [newFountainLocation, setCurrentLocation] = useState<[number,number]>([31,35]);
+
+    // For Showing Card
+    const [selectedMarker, setSelectedMarker] = useState<Fountain>(markers[0]);
+    const [isCardOpen, setIsCardOpen] = useState(false);
 
     // Markers
     const renderMarkers = markers.map(marker => (
-        <FountainMarker fountain={marker} />
+        <FountainMarker fountain={marker} openDialog={setIsCardOpen} setMarker={setSelectedMarker}/>
     ));
 
-    // Go to user's current location. on pwa, get location from device and not from map.
-    const handleUserLocation = () => {
-        map?.locate().on('locationfound', function(e){
-            map.flyTo(e.latlng, 18);
-            console.log(e.latlng);
-        });
-    };
-
-    const addNewFountainMarker = () => {
-        const newFountain:Fountain = {
-            name: newFountainName,
-            description: newFountainDescription,
-            rating: newFountainRating,
-            geolocation: newFountainLocation
-        };
-        setMarkers([...markers, newFountain]);    
-    };
 
     /* Main Display Of The Map */
     const mapDisplay = useMemo(
@@ -57,18 +44,26 @@ function CoolerMap(){
             </MapContainer>
         ), [markers]);
 
+            // Go to user's current location. on pwa, get location from device and not from map.
+    const handleUserLocation = () => {
+        map?.locate().once('locationfound', function(e){
+            map.flyTo(e.latlng, 18);
+        });
+    };
 
     // Dialog
     const handleOpen = () => {
-        map?.locate().on('locationfound', function(e){
+        map?.locate().once('locationfound', function(e){
             setCurrentLocation([e.latlng.lat, e.latlng.lng]);
             setOpen(true);
-        }).on('locationerror', function(e){
+        })
+        .once('locationerror', function(e){
             <Alert>
                 <AlertTitle>סורי!</AlertTitle>
                 לא הצלחנו למצוא את המיקום שלך. צמאים לתיקון
             </Alert>
         });
+
     }
     const handleQuit = () => {
         setOpen(false);
@@ -86,12 +81,32 @@ function CoolerMap(){
     const handleRating = (e: React.ChangeEvent<HTMLInputElement>) => {
         setRating(Number(e.target.value));
     }
+    const addNewFountainMarker = () => {
+        const newFountain:Fountain = {
+            name: newFountainName,
+            description: newFountainDescription,
+            rating: newFountainRating,
+            geolocation: newFountainLocation
+        };
+        setMarkers([...markers, newFountain]);    
+    };
+    const handleRemove = () => {
+        console.log('trying to remove fountain');
+        setMarkers(markers.filter(marker => marker !== selectedMarker));
+        setIsCardOpen(false);
+    };
 
     return (
         <>
         {mapDisplay}
-        
-        {/* // Dialog */}
+        {markers.length > 0 ?
+        <CoolerCard 
+            fountain={selectedMarker? selectedMarker :markers[0]}
+            isCardOpen={isCardOpen}
+            setIsCardOpen={setIsCardOpen}
+            handleRemove={handleRemove}/>
+        : null
+        }
         <Dialog open={dialogOpen} onClose={handleQuit}>
             <DialogTitle>Add new fountain</DialogTitle>
                 <DialogContent>
@@ -126,7 +141,6 @@ function CoolerMap(){
                 <Button sx={{'fontSize':'22px', 'color':'#212121'}} onClick={handleSubmit}>+</Button>
             </DialogActions>
         </Dialog>
-
         <div className="cooler-btns">
             <Button
                 sx={{'border':'solid #2596be 1px', 'backgroundColor':'#1eaec0', 'textTransform':'none'}}

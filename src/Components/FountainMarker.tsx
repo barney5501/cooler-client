@@ -7,13 +7,17 @@ export interface Fountain{
     geolocation: [number,number]
 }
 
-function FountainMarker({fountain}:{fountain:Fountain}){
+function FountainMarker({fountain, openDialog, setMarker}:{fountain:Fountain,
+    openDialog:React.Dispatch<React.SetStateAction<boolean>>,
+    setMarker:React.Dispatch<React.SetStateAction<Fountain>>    
+}){
+    
+    const onclick = () => {
+        openDialog(true);
+        setMarker(fountain);
+    };
     return (
-        <Marker position={fountain.geolocation}>
-            <Popup>
-                {fountain.name}
-            </Popup>
-        </Marker>
+        <Marker position={fountain.geolocation} eventHandlers={{click:onclick}} />
     )
 }
 

@@ -27,7 +27,26 @@
   color: red;
 }
 
+.cooler-dialog {
+  direction: rtl;
+  text-align: right;
+  
+}
+.cooler-dialog-title{
+
+}
+
+.cooler-description{
+  
+}
+
+.cooler-rating{
+  display: flex;
+  justify-content: left;
+}
 
 body {
-  background-color: #201c1c;
+  /* background-color: #201c1c; */
+  background-color: #252424;
+  /* background-color: #313543; */
 }
